@@ -9,6 +9,8 @@ This 📁repository was 🏗️created with the goal of attaining a foundational
 
 #### The RabbitMq Architecture
 
+![image](https://github.com/KuruCoders/node_Mq/assets/103739510/a73dbd35-3de5-4380-ab53-bd9de2a59be6)
+
 ![image](https://github.com/KuruCoders/node_Mq/assets/103739510/73f7e46d-a9bb-46d5-a921-35d664251f08)
 
 #### Deployment Architecture
