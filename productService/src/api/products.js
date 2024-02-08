@@ -1,8 +1,8 @@
 const ProductService = require('../services/product-service');
 const UserAuth = require('./middlewares/auth')
-const { PublishShoppingEvent, PublishCustomerEvent } = require('../utils')
-
-module.exports = (app) => {
+const { PublishMessage} = require('../utils')
+const {CUSTOMER_BINDING_KEY,SHOPPING_BINDING_KEY} =require('../config/index')
+module.exports = (app,channel) => {
 
     const service = new ProductService();
 
@@ -74,7 +74,7 @@ module.exports = (app) => {
             FormateData returns the res type in {data}
             so to access it from the above we need to use data.data
             */
-            PublishCustomerEvent(data)
+            PublishMessage(channel,CUSTOMER_BINDING_KEY,JSON.stringify(data))
             return res.status(200).json(data.data.product);
         } catch (err) {
 
@@ -89,7 +89,7 @@ module.exports = (app) => {
         try {
             //get the payload to be send tocustomer service
             const { data } = await service.GetProductPayLoad(_id, { productId }, 'REMOVE_FROM_WISHLIST')
-            PublishCustomerEvent(data)
+            PublishMessage(channel,CUSTOMER_BINDING_KEY,JSON.stringify(data))
             return res.status(200).json(data.data.product);
         } catch (err) {
             next(err)
@@ -104,8 +104,8 @@ module.exports = (app) => {
             //get the payload to be send tocustomer service
             const { data } = await service.GetProductPayLoad(_id, { productId: req.body._id, qty: req.body.qty }, 'ADD_TO_CART')
             
-            PublishCustomerEvent(data)
-            PublishShoppingEvent(data)
+            PublishMessage(channel,CUSTOMER_BINDING_KEY,JSON.stringify(data))
+            PublishMessage(channel,SHOPPING_BINDING_KEY,JSON.stringify(data))
 
             const response = {
                 product: data.data.product,
@@ -127,8 +127,8 @@ module.exports = (app) => {
         try {
              //get the payload to be send tocustomer service
             const { data } = await service.GetProductPayLoad(_id, { productId }, 'REMOVE_FROM_CART')
-            PublishCustomerEvent(data)
-            PublishShoppingEvent(data)
+            PublishMessage(channel,CUSTOMER_BINDING_KEY,JSON.stringify(data))
+            PublishMessage(channel,SHOPPING_BINDING_KEY,JSON.stringify(data))
             
             const response = {
                 product: data.data.product,

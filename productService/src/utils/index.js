@@ -1,8 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const axios = require('axios')
-
-const { APP_SECRET } = require("../config");
+const amqplib = require("amqplib")
+const { APP_SECRET,MSG_BROKER_URL,EXCHANGE_NAME } = require("../config");
 
 //Utility functions
 module.exports.GenerateSalt = async () => {
@@ -50,9 +49,35 @@ module.exports.FormateData = (data) => {
     throw new Error("Data Not found!");
   }
 };
-module.exports.PublishCustomerEvent = async (payload) => {
-  axios.post('http://localhost:8000/customer/app-events',{payload})
+//message broker Impl
+
+//create a channel
+module.exports.CreateChannel = async()=> {
+  try {
+    const connection = await amqplib.connect(MSG_BROKER_URL)
+    const channel = await connection.createChannel()
+    await channel.assertExchange(EXCHANGE_NAME, 'direct', false)
+    return channel
+  } catch (error) {
+    throw error
+  }
 }
-module.exports.PublishShoppingEvent = async (payload) => {
-  axios.post('http://localhost:8000/shopping/app-events',{payload})
+//publish message
+module.exports.PublishMessage = async (channel, bindKey, message) => {
+  try {
+    await channel.publish(EXCHANGE_NAME,bindKey,Buffer.from(message))
+  } catch (error) {
+    throw error
+  }
+}
+
+//subscribe message
+module.exports.SubscibeMessage = async(channel, service, bindKey) => {
+  const appQueue = await channel.assertQueue(QUEUE_NAME)
+  channel.bindQueue(appQueue.queue, EXCHANGE_NAME, bindKey)
+  channel.consume(appQueue.queue, data => {
+    console.log('Received Data')
+    console.log(data.content.toString())
+    channel.ack(data)
+  })
 }
